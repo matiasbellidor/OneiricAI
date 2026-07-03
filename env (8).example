@@ -1,0 +1,107 @@
+import { useEffect, useState } from "react";
+import type { Post, ReconstructOut, SleepSession } from "./types";
+import { DEMO_MODE, getFeed, getNight, reconstruct, resolveMedia } from "./lib/api";
+import FragmentsPanel from "./components/FragmentsPanel";
+import NightPanel from "./components/NightPanel";
+import DreamVideoPanel from "./components/DreamVideoPanel";
+import AntiFakeReportPanel from "./components/AntiFakeReport";
+import Feed from "./components/Feed";
+
+export default function App() {
+  const [text, setText] = useState("");
+  const [session, setSession] = useState<SleepSession | null>(null);
+  const [result, setResult] = useState<ReconstructOut | null>(null);
+  const [feed, setFeed] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getNight().then(setSession).catch(() => setSession(null));
+    getFeed().then(setFeed).catch(() => setFeed([]));
+  }, []);
+
+  const onSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const out = await reconstruct(text);
+      setResult(out);
+      setSession(out.session);
+      if (out.post) setFeed(await getFeed());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen">
+      {DEMO_MODE && (
+        <div className="border-b border-line bg-panel/60 px-4 py-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+          Modo demo — noche sintética y motor local · conectá el backend con{" "}
+          <span className="text-violet">VITE_API_URL</span> para datos reales
+        </div>
+      )}
+
+      <main className="mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6">
+        {/* Header */}
+        <header className="mb-12">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="font-display text-xl text-ivory">OneiricAi</span>
+            <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">
+              La red social sana
+            </span>
+          </div>
+          <h1 className="max-w-2xl font-display text-4xl leading-[1.12] text-ivory sm:text-5xl">
+            Reconstruí lo que soñaste.
+          </h1>
+          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">
+            Verificado por tu propio cuerpo: fragmentos escritos al despertar,
+            contrastados con la frecuencia cardíaca y el sueño REM de esa misma
+            noche. Si no coinciden, el video no existe.
+          </p>
+        </header>
+
+        {error && (
+          <div className="mb-6 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+            {error}
+          </div>
+        )}
+
+        {/* Row 1: fragments + night */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <FragmentsPanel text={text} setText={setText} onSubmit={onSubmit} loading={loading} />
+          </div>
+          <div className="lg:col-span-7">
+            <NightPanel session={session} />
+          </div>
+        </div>
+
+        {/* Row 2: reconstruction + anti-fake report */}
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <DreamVideoPanel
+              structured={result?.dream.structured ?? null}
+              report={result?.report ?? null}
+              videoUrl={resolveMedia(result?.generation.video_url ?? null)}
+            />
+          </div>
+          <div className="lg:col-span-7">
+            <AntiFakeReportPanel report={result?.report ?? null} />
+          </div>
+        </div>
+
+        {/* Feed */}
+        <div className="mt-12">
+          <Feed posts={feed} />
+        </div>
+
+        <footer className="mt-16 border-t border-line pt-6 text-center font-mono text-[10px] text-muted/70">
+          Hecho por Matías Bellido — OneiricAi MVP · biometría + narrativa, sin caja negra
+        </footer>
+      </main>
+    </div>
+  );
+}

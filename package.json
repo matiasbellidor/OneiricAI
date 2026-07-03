@@ -1,0 +1,61 @@
+import { REAL_CALM_DREAM, FAKE_VIRAL_DREAM } from "../lib/demoData";
+
+interface Props {
+  text: string;
+  setText: (t: string) => void;
+  onSubmit: () => void;
+  loading: boolean;
+}
+
+export default function FragmentsPanel({ text, setText, onSubmit, loading }: Props) {
+  return (
+    <section className="rounded-2xl border border-line bg-panel p-6 flex flex-col gap-4">
+      <div className="flex items-baseline justify-between">
+        <span className="eyebrow">01 — Fragmentos al despertar</span>
+        <span className="font-mono text-[10px] text-muted">{text.length} car.</span>
+      </div>
+
+      <p className="text-sm text-muted leading-relaxed">
+        Escribí lo que recuerdes, aunque sean pedazos sueltos. El motor lo va a
+        contrastar con lo que tu cuerpo registró esta noche.
+      </p>
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={7}
+        spellCheck={false}
+        placeholder="Estaba en… había una luz… alguien me esperaba…"
+        className="w-full resize-none rounded-xl border border-line bg-night/60 p-4 text-[15px] leading-relaxed text-ivory placeholder:text-muted/50 focus:outline-none focus:border-violet/60 transition-colors"
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setText(REAL_CALM_DREAM)}
+          className="rounded-full border border-line px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted hover:text-ivory hover:border-violet/50 transition-colors"
+        >
+          Ejemplo: sueño real
+        </button>
+        <button
+          onClick={() => setText(FAKE_VIRAL_DREAM)}
+          className="rounded-full border border-line px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted hover:text-ivory hover:border-coral/50 transition-colors"
+        >
+          Ejemplo: inventado viral
+        </button>
+      </div>
+
+      <button
+        onClick={onSubmit}
+        disabled={loading || text.trim().length < 12}
+        className="mt-1 rounded-xl bg-violet px-5 py-3.5 font-medium text-night text-[15px] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-violet/90 transition-colors"
+      >
+        {loading ? "Verificando con tu noche…" : "Reconstruir sueño"}
+      </button>
+
+      <p className="font-mono text-[10px] text-muted/70 leading-relaxed">
+        Si el relato no coincide con tus biomarcadores, el video no se genera.
+        Esa es la regla.
+      </p>
+    </section>
+  );
+}

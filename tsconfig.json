@@ -1,0 +1,118 @@
+import type { AntiFakeReport as Report } from "../types";
+
+const PRE_CHECKS: Array<[string, string, number]> = [
+  ["Datos de sueño", "¿Hay registro biométrico de esa noche?", 25],
+  ["Fase REM", "¿Hubo sueño REM? Sin REM casi no hay recuerdo onírico.", 15],
+  ["Intensidad vs corazón", "¿La intensidad del relato coincide con la reactividad cardíaca en REM?", 30],
+  ["Tono emocional vs estrés", "¿El tono (angustia/calma) coincide con picos y despertares?", 15],
+  ["Ventana de recuerdo", "¿Se registró poco después de despertar?", 15],
+];
+
+function ArousalTrack({ bio, text }: { bio: number; text: number }) {
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  return (
+    <div className="rounded-xl border border-line bg-night/40 p-4">
+      <div className="mb-3 flex items-baseline justify-between">
+        <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">
+          Intensidad — cuerpo vs relato
+        </span>
+        <span className="font-mono text-[10px] text-muted">Δ {Math.abs(bio - text).toFixed(2)}</span>
+      </div>
+      <div className="relative h-8">
+        <div className="absolute top-1/2 h-px w-full -translate-y-1/2 bg-line" />
+        {/* bio marker */}
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style={{ left: pct(bio) }}>
+          <div className="h-3.5 w-3.5 rounded-full border-2 border-coral bg-night" />
+        </div>
+        {/* text marker */}
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style={{ left: pct(text) }}>
+          <div className="h-3.5 w-3.5 rotate-45 border-2 border-violet bg-night" />
+        </div>
+      </div>
+      <div className="mt-2 flex justify-between font-mono text-[9px] text-muted">
+        <span>calmo 0.0</span>
+        <span className="text-coral">● cuerpo {bio.toFixed(2)}</span>
+        <span className="text-violet">◆ relato {text.toFixed(2)}</span>
+        <span>intenso 1.0</span>
+      </div>
+    </div>
+  );
+}
+
+export default function AntiFakeReportPanel({ report }: { report: Report | null }) {
+  return (
+    <section className="rounded-2xl border border-line bg-panel p-6 flex flex-col gap-4">
+      <div className="flex items-baseline justify-between">
+        <span className="eyebrow">Anti-Fake Engine — Autenticidad biológica</span>
+        <span className="font-mono text-[10px] text-muted">umbral {report?.threshold ?? 60}/100</span>
+      </div>
+
+      {!report ? (
+        <>
+          <p className="text-sm text-muted leading-relaxed">
+            Cinco chequeos explicables deciden si tu relato está respaldado por
+            tu propia noche. Nada de caja negra: cada punto tiene una razón.
+          </p>
+          <ul className="flex flex-col gap-2.5">
+            {PRE_CHECKS.map(([label, desc, max]) => (
+              <li key={label} className="flex items-start gap-3 rounded-xl border border-line bg-night/40 px-4 py-3">
+                <span className="mt-0.5 font-mono text-[10px] text-violet w-9 shrink-0">{max} pts</span>
+                <div>
+                  <div className="text-sm text-ivory">{label}</div>
+                  <div className="text-xs text-muted leading-relaxed">{desc}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-5">
+            <div className="font-display text-6xl text-ivory leading-none">
+              {report.score.toFixed(0)}
+              <span className="text-xl text-muted">/100</span>
+            </div>
+            <span
+              className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.18em] ${
+                report.passed
+                  ? "border-teal/50 bg-teal/10 text-teal"
+                  : "border-danger/50 bg-danger/10 text-danger"
+              }`}
+            >
+              {report.passed ? "Aprobado" : "Rechazado"}
+            </span>
+          </div>
+
+          <ArousalTrack bio={report.bio_arousal} text={report.text_arousal} />
+
+          <ul className="flex flex-col gap-2.5">
+            {report.checks.map((c) => (
+              <li key={c.key} className="rounded-xl border border-line bg-night/40 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`text-sm ${c.passed ? "text-ivory" : "text-danger"}`}>
+                    {c.passed ? "" : "✕ "}{c.label}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted shrink-0">
+                    {c.points.toFixed(0)}/{c.max_points.toFixed(0)}
+                  </span>
+                </div>
+                <div className="mt-2 h-1 rounded-full bg-line overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${c.passed ? "bg-teal" : "bg-danger"}`}
+                    style={{ width: `${(c.points / c.max_points) * 100}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-muted leading-relaxed">{c.reason}</p>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <p className="font-mono text-[10px] text-muted/70">
+        Heurística explicable — nada de caja negra. Cada verificación es defendible
+        frente a un jurado o un inversor.
+      </p>
+    </section>
+  );
+}

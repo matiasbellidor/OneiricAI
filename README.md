@@ -1,2 +1,4 @@
-# OneiricAI
-Built in just 4 hours during the first edition of the SideQuest hackathon. OneiricAi was born from a problem we all know: almost everything we dream fades within minutes of waking up, and with it we lose ideas, scenes, and memories we would love to keep.
+Signature: 8a477f597d28d172789f06886806bc55
+# This file is a cache directory tag created by pytest.
+# For information about cache directory tags, see:
+#	https://bford.info/cachedir/spec.html

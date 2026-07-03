@@ -1,0 +1,19 @@
+# All variables are OPTIONAL — with none of them set the API boots in demo
+# mode: in-memory store, synthetic wearable data, local NLP fallback.
+
+# Claude structured extraction (recommended for full mode)
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-sonnet-4-6
+
+# Supabase persistence (full mode). Run db/schema.sql first.
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=
+
+# Video generation: mock (free, needs ffmpeg installed) | replicate (paid)
+VIDEO_PROVIDER=mock
+REPLICATE_API_TOKEN=
+REPLICATE_MODEL=
+
+# API
+CORS_ORIGINS=*
+ANTIFAKE_THRESHOLD=60
